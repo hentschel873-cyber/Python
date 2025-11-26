@@ -1,3 +1,4 @@
+[![CI](https://github.com/hentschel873-cyber/Python/actions/workflows/ci.yml/badge.svg)](https://github.com/hentschel873-cyber/Python/actions/workflows/ci.yml)
  # Beispiel: `main.py` - Offline Update-Tests
 
 Dieses Repository enthält ein kleines Beispielskript `main.py` mit einer optionalen
@@ -27,6 +28,35 @@ python .\main.py --process-update .\example_message_start.json
 python .\main.py --process-update .\example_message_no_username.json
 ```
 
+Entwicklungs-Setup
+------------------
+
+Empfohlene Schritte zum Einrichten der Entwicklungsumgebung und der CI-Checks:
+
+```powershell
+# Virtuelle Umgebung aktivieren (PowerShell)
+. .\.venv\Scripts\Activate.ps1
+
+# Dev-Abhängigkeiten installieren
+python -m pip install -r requirements-dev.txt
+
+# Pre-commit Hooks einmal lokal installieren
+pre-commit install
+
+# Tests, Lint und Typprüfung lokal laufen lassen
+python -m pytest -q
+python -m flake8 --exclude=.venv .
+python -m mypy .
+
+# Coverage erzeugen (HTML-Bericht in 'htmlcov')
+python -m coverage run -m pytest
+python -m coverage report -m
+python -m coverage html
+
+# Abhängigkeits-Sicherheitsscan
+python -m pip_audit
+```
+
 Echtes Bot-Running
 
 - Um den Beispiel-Bot wirklich zu starten, installiere `python-telegram-bot` (z. B.):
@@ -48,3 +78,15 @@ Hinweis
   Bibliothek auf. Wenn du möchtest, kann ich `main.py` erweitern, sodass bei
   installiertem `python-telegram-bot` echte `Update`-Objekte konstruiert und die
   Handler direkt ausgeführt werden.
+
+Merge-Policy / Branch Protection
+-------------------------------
+
+Empfehlung für Repository-Schutzregeln (konfiguriere unter GitHub -> Settings -> Branches):
+
+- Require pull request reviews before merging (1 reviewer mindestens).
+- Require status checks to pass before merging: aktiviere `CI` (pytest), `flake8` und `mypy`.
+- Optional: Enable "Require branches to be up to date before merging".
+- Optional: Restrict who can push to `main` (z. B. nur Maintainer).
+
+Wenn du möchtest, kann ich ein Issue erstellen oder per API diese Regeln setzen (benötigt Token/Permissions).

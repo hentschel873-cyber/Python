@@ -1,0 +1,135 @@
+{
+  "name": "TTS -> Telegram Send Audio (example)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tts-audio",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "text",
+              "value": "={{$json[\"body\"].text || $json.text || 'Hallo Welt'}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set Text",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.example-tts.com/v1/speak",
+        "options": {},
+        "responseFormat": "file",
+        "jsonParameters": true,
+        "bodyParametersJson": "={\"text\": $json.text, \"voice\": \"de-DE-Standard\"}",
+        "headerParametersJson": "={\"Authorization\": \"Bearer YOUR_API_KEY\", \"Accept\": \"audio/mpeg\"}",
+        "binaryPropertyName": "data"
+      },
+      "name": "TTS HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": false,
+        "properties": [
+          {
+            "name": "audioFile",
+            "property": "data",
+            "type": "binary"
+          }
+        ]
+      },
+      "name": "Move Binary Data",
+      "type": "n8n-nodes-base.moveBinaryData",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "send",
+        "chatId": "={{$json[\"body\"].chatId || ''}}",
+        "binaryProperty": "audioFile",
+        "options": {
+          "title": "TTS-Audio"
+        }
+      },
+      "name": "Telegram Send Audio",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1050, 300],
+      "credentials": {
+        "telegramApi": {
+          "id": "=credentials.telegramApi.id"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Text": {
+      "main": [
+        [
+          {
+            "node": "TTS HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TTS HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Move Binary Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Move Binary Data": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "versionId": "1"
+}
