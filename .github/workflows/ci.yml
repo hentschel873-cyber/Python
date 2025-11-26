@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, 'ci/**' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ '3.11', '3.12', '3.14' ]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Show environment (debug)
+        run: |
+          echo "Runner: $RUNNER_OS"
+          echo "Matrix Python: ${{ matrix.python-version }}"
+          python --version || true
+          python -m pip --version || true
+          uname -a || true
+          lsb_release -a 2>/dev/null || true
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements-dev.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements-dev.txt ]; then python -m pip install -r requirements-dev.txt; fi
+
+      - name: Run tests (with coverage)
+        run: |
+          python -m pip install --quiet coverage || true
+          coverage run -m pytest -q
+          coverage xml -i -o coverage.xml
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+      - name: Run flake8 (style checks)
+        run: |
+          # flake8 config file is present; exclude virtualenv if any
+          python -m pip install --quiet flake8 || true
+          python -m flake8 --exclude=.venv .
+
+      - name: Run mypy (type checks)
+        run: |
+          python -m pip install --quiet mypy || true
+          python -m mypy .
+      - name: Run pip-audit (dependency security scan)
+        run: |
+          python -m pip install --quiet pip-audit || true
+          python -m pip_audit
+      - name: Upload coverage to Codecov
+        if: ${{ secrets.CODECOV_TOKEN != '' }}
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
