@@ -2,9 +2,10 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, 'ci/**' ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   test:
@@ -20,6 +21,15 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: Show environment (debug)
+        run: |
+          echo "Runner: $RUNNER_OS"
+          echo "Matrix Python: ${{ matrix.python-version }}"
+          python --version || true
+          python -m pip --version || true
+          uname -a || true
+          lsb_release -a 2>/dev/null || true
 
       - name: Cache pip
         uses: actions/cache@v4
