@@ -6,8 +6,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def run_main_with(example_filename: str) -> str:
-    """Run `main.py --process-update <example>` and return stdout+stderr as text."""
+def run_main_with(example_filename: str) -> tuple[int, str]:
+    """Run `main.py --process-update <example>` and return (returncode, stdout+stderr)."""
     exe = sys.executable
     p = subprocess.run(
         [exe, str(ROOT / "main.py"), "--process-update", str(ROOT / example_filename)],
