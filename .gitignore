@@ -1,0 +1,12 @@
+# Node dependencies
+node_modules/
+
+# Locally downloaded CI run logs and archives
+run-logs-*/
+run*logs*/
+run*.zip
+
+# Editor / OS files
+.vscode/
+*.pyc
+__pycache__/
