@@ -13,8 +13,8 @@ import argparse
 import json
 import logging
 import os
-from uuid import uuid4
 from typing import Optional
+from uuid import uuid4
 
 
 def get_python_version() -> str:
@@ -32,18 +32,10 @@ def main() -> None:
 
 # Optional: Telegram bot example (only if package is installed)
 try:
-    from telegram import (
-        Update,
-        InlineQueryResultArticle,
-        InputTextMessageContent,
-        User,
-    )
-    from telegram.ext import (
-        ApplicationBuilder,
-        ContextTypes,
-        InlineQueryHandler,
-        CommandHandler,
-    )
+    from telegram import (InlineQueryResultArticle, InputTextMessageContent,
+                          Update, User)
+    from telegram.ext import (ApplicationBuilder, CommandHandler, ContextTypes,
+                              InlineQueryHandler)
 
     _HAS_TELEGRAM = True
 except Exception:
@@ -98,12 +90,14 @@ def _try_process_with_telegram(data: dict) -> bool:
     try:
         import asyncio
         import types
+
         from telegram import Update as TgUpdate
 
         update_obj = TgUpdate.de_json(data, bot=None)
 
         inline_obj = getattr(update_obj, "inline_query", None)
         if inline_obj is not None:
+
             async def _print_answer(self, results):
                 print("InlineQuery erkannt. Simulierte Antworten (real handler):")
                 for r in results:
@@ -117,6 +111,7 @@ def _try_process_with_telegram(data: dict) -> bool:
 
         msg = getattr(update_obj, "message", None)
         if msg is not None:
+
             async def _print_reply(self, text, **kwargs):
                 print(f"Message erkannt (real handler). Würde antworten: {text}")
 
@@ -151,9 +146,7 @@ def _process_offline(data: dict) -> None:
         first_name = from_user.get("first_name") or "Nutzer"
         user_id = from_user.get("id", 0)
         mention = (
-            f"@{username}"
-            if username
-            else f"[{first_name}](tg://user?id={user_id})"
+            f"@{username}" if username else f"[{first_name}](tg://user?id={user_id})"
         )
         text = message.get("text") or ""
         print(f"Message erkannt. Text: {text}")
@@ -167,6 +160,7 @@ def _process_offline(data: dict) -> None:
 
 
 if _HAS_TELEGRAM:
+
     async def inline_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Sichere Inline-Query-Behandlung.
 
@@ -244,7 +238,7 @@ if __name__ == "__main__":
         "--token",
         type=str,
         default=None,
-        help="Bot token (overrides TELEGRAM_TOKEN env var)",
+        help="Bot token (overrides BOT_TOKEN or TELEGRAM_TOKEN env var)",
     )
     args = parser.parse_args()
 
@@ -284,10 +278,7 @@ if __name__ == "__main__":
                 if username:
                     mention = f"@{username}"
                 else:
-                    mention = (
-                        f"[{first_name}]"
-                        f"(tg://user?id={user_id})"
-                    )
+                    mention = f"[{first_name}]" f"(tg://user?id={user_id})"
                 text = message.get("text") or ""
                 print(f"Message erkannt. Text: {text}")
                 if text.strip().startswith("/start"):
@@ -300,7 +291,11 @@ if __name__ == "__main__":
             raise SystemExit(0)
 
     if args.run_bot:
-        token = args.token or os.environ.get("TELEGRAM_TOKEN")
+        # Prefer `BOT_TOKEN` but allow the older `TELEGRAM_TOKEN` name for
+        # backwards compatibility.
+        token = args.token
+        if not token:
+            token = os.environ.get("BOT_TOKEN") or os.environ.get("TELEGRAM_TOKEN")
         if not _HAS_TELEGRAM:
             print(
                 "Das Paket 'python-telegram-bot' ist nicht installiert. "
