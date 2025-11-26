@@ -28,6 +28,35 @@ python .\main.py --process-update .\example_message_start.json
 python .\main.py --process-update .\example_message_no_username.json
 ```
 
+Entwicklungs-Setup
+------------------
+
+Empfohlene Schritte zum Einrichten der Entwicklungsumgebung und der CI-Checks:
+
+```powershell
+# Virtuelle Umgebung aktivieren (PowerShell)
+. .\.venv\Scripts\Activate.ps1
+
+# Dev-Abhängigkeiten installieren
+python -m pip install -r requirements-dev.txt
+
+# Pre-commit Hooks einmal lokal installieren
+pre-commit install
+
+# Tests, Lint und Typprüfung lokal laufen lassen
+python -m pytest -q
+python -m flake8 --exclude=.venv .
+python -m mypy .
+
+# Coverage erzeugen (HTML-Bericht in 'htmlcov')
+python -m coverage run -m pytest
+python -m coverage report -m
+python -m coverage html
+
+# Abhängigkeits-Sicherheitsscan
+python -m pip_audit
+```
+
 Echtes Bot-Running
 
 - Um den Beispiel-Bot wirklich zu starten, installiere `python-telegram-bot` (z. B.):
