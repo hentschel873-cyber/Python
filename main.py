@@ -215,7 +215,7 @@ if _HAS_TELEGRAM:
         app.add_handler(InlineQueryHandler(inline_query))
         app.add_handler(CommandHandler("start", start))
         print("Bot läuft... (STRG+C zum Beenden)")
-        app.run_polling()
+        app.run_polling()  # pragma: no cover
 
 
 if __name__ == "__main__":
@@ -302,6 +302,6 @@ if __name__ == "__main__":
                 "Installiere es mit: `pip install python-telegram-bot`"
             )
         else:
-            run_bot(token)
+            run_bot(token)  # pragma: no cover
     else:
         main()
