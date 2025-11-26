@@ -7,10 +7,17 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def run_main_with(example_filename: str) -> tuple[int, str]:
-    """Run `main.py --process-update <example>` and return (returncode, stdout+stderr)."""
+    """Run `main.py --process-update <example>` and return
+    (returncode, stdout+stderr).
+    """
     exe = sys.executable
     p = subprocess.run(
-        [exe, str(ROOT / "main.py"), "--process-update", str(ROOT / example_filename)],
+        [
+            exe,
+            str(ROOT / "main.py"),
+            "--process-update",
+            str(ROOT / example_filename),
+        ],
         capture_output=True,
         text=True,
         check=False,
