@@ -1,12 +1,14 @@
 import json
 from pathlib import Path
+from typing import Any, cast
 
 from main import process_update_data
 
 
-def load_json(name: str) -> dict:
+def load_json(name: str) -> dict[str, Any]:
     p = Path(__file__).parent.parent / name
-    return json.loads(p.read_text(encoding="utf-8"))
+    # json.loads returns Any; cast to a mapping for stricter typing checks
+    return cast(dict[str, Any], json.loads(p.read_text(encoding="utf-8")))
 
 
 def test_inline_query_outputs(capsys):
