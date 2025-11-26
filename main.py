@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Main Python script - Beispiel für ein Python-Projekt
+"""Main Python script - Beispiel für ein Python‑Projekt
 
-Dieses Script hat zwei Funktionen:
-- Standard-`main()` zeigt die lokale Python-Version an.
-- Optionales Beispiel: sicherer Telegram Inline-Query-/Start-Handler —
-    nur aktiv, wenn das Paket ``python-telegram-bot`` installiert ist und
-    beim Start die Option ``--run-bot`` übergeben wird.
+Dieses Skript hat zwei Funktionen:
+- Die Standard‑Funktion `main()` zeigt die lokale Python‑Version an.
+- Optionales Beispiel: sicherer Telegram Inline‑Query/Start‑Handler —
+    dieser ist nur aktiv, wenn das Paket ``python-telegram-bot`` installiert
+    ist und beim Start die Option ``--run-bot`` übergeben wird.
 """
 from __future__ import annotations
 

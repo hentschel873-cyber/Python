@@ -48,3 +48,4 @@ toml==0.10.2
 typing_extensions==4.15.0
 urllib3==2.5.0
 virtualenv==20.35.4
+python-telegram-bot>=20.0
