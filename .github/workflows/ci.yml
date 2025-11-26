@@ -34,9 +34,16 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements-dev.txt ]; then python -m pip install -r requirements-dev.txt; fi
 
-      - name: Run tests
+      - name: Run tests (with coverage)
         run: |
-          python -m pytest -q
+          python -m pip install --quiet coverage || true
+          coverage run -m pytest -q
+          coverage xml -i -o coverage.xml
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
       - name: Run flake8 (style checks)
         run: |
           # flake8 config file is present; exclude virtualenv if any
