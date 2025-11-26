@@ -1,4 +1,5 @@
 [![CI](https://github.com/hentschel873-cyber/Python/actions/workflows/ci.yml/badge.svg)](https://github.com/hentschel873-cyber/Python/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/badge/coverage-unknown-lightgrey.svg)](https://github.com/hentschel873-cyber/Python/actions/workflows/ci.yml)
  # Beispiel: `main.py` - Offline Update-Tests
 
 Dieses Repository enthält ein kleines Beispielskript `main.py` mit einer optionalen
