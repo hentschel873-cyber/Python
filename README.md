@@ -2,6 +2,8 @@
 [![Coverage](https://img.shields.io/badge/coverage-unknown-lightgrey.svg)](https://github.com/hentschel873-cyber/Python/actions/workflows/ci.yml)
  # Beispiel: `main.py` - Offline Update-Tests
 
+[![codecov](https://codecov.io/gh/hentschel873-cyber/Python/branch/main/graph/badge.svg)](https://codecov.io/gh/hentschel873-cyber/Python)
+
 Dieses Repository enthält ein kleines Beispielskript `main.py` mit einer optionalen
 Telegram-Handler-Demo. Zusätzlich gibt es Offline-Test-JSONs, mit denen du
 simulieren kannst, wie die Handler auf Updates reagieren, ohne einen echten Bot
