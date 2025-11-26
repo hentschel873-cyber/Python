@@ -8,7 +8,6 @@ Dieses Script hat zwei Funktionen:
   (nur aktiv, wenn `python-telegram-bot` installiert ist und Sie
   `--run-bot` beim Start übergeben).
 """
-
 from __future__ import annotations
 
 import argparse
@@ -22,6 +21,7 @@ from typing import Optional
 def get_python_version() -> str:
     """Gibt die aktuelle Python-Version zurück."""
     import sys
+
     return f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
 
 
@@ -33,8 +33,19 @@ def main() -> None:
 
 # Optional: Telegram bot example (only if package is installed)
 try:
-    from telegram import Update, InlineQueryResultArticle, InputTextMessageContent, User
-    from telegram.ext import ApplicationBuilder, ContextTypes, InlineQueryHandler, CommandHandler
+    from telegram import (
+        Update,
+        InlineQueryResultArticle,
+        InputTextMessageContent,
+        User,
+    )
+    from telegram.ext import (
+        ApplicationBuilder,
+        ContextTypes,
+        InlineQueryHandler,
+        CommandHandler,
+    )
+
     _HAS_TELEGRAM = True
 except Exception:
     _HAS_TELEGRAM = False
@@ -71,41 +82,58 @@ def process_update_data(data: dict) -> None:
     die einfache Offline-Simulation aus.
     """
 
-    # Wenn python-telegram-bot installiert ist, versuche echte Update-Objekte
-    if _HAS_TELEGRAM:
-        try:
-            import asyncio
-            import types
-            from telegram import Update as TgUpdate
+    # Versuche zuerst, die Daten mit python-telegram-bot zu handhaben.
+    if _HAS_TELEGRAM and _try_process_with_telegram(data):
+        return
 
-            update_obj = TgUpdate.de_json(data, bot=None)
+    # Ansonsten Offline-Fallback
+    _process_offline(data)
 
-            inline_obj = getattr(update_obj, "inline_query", None)
-            if inline_obj is not None:
-                async def _print_answer(self, results):
-                    print("InlineQuery erkannt. Simulierte Antworten (real handler):")
-                    for r in results:
-                        title = getattr(r, "title", "(kein Titel)")
-                        desc = getattr(r, "description", "")
-                        print(f"- {title}: {desc}")
 
-                inline_obj.answer = types.MethodType(_print_answer, inline_obj)
-                asyncio.run(inline_query(update_obj, None))
-                return
+def _try_process_with_telegram(data: dict) -> bool:
+    """Versucht, `telegram.Update` zu bauen und Handler aufzurufen.
 
-            msg = getattr(update_obj, "message", None)
-            if msg is not None:
-                async def _print_reply(self, text, **kwargs):
-                    print(f"Message erkannt (real handler). Würde antworten: {text}")
+    Gibt `True` zurück, wenn das Update verarbeitet wurde, sonst `False`.
+    """
 
-                msg.reply_text = types.MethodType(_print_reply, msg)
-                asyncio.run(start(update_obj, None))
-                return
+    try:
+        import asyncio
+        import types
+        from telegram import Update as TgUpdate
 
-        except Exception as exc:
-            print(f"Fehler beim Erzeugen/Verarbeiten von telegram.Update: {exc}")
+        update_obj = TgUpdate.de_json(data, bot=None)
 
-    # Fallback: Offline-Simulation
+        inline_obj = getattr(update_obj, "inline_query", None)
+        if inline_obj is not None:
+            async def _print_answer(self, results):
+                print("InlineQuery erkannt. Simulierte Antworten (real handler):")
+                for r in results:
+                    title = getattr(r, "title", "(kein Titel)")
+                    desc = getattr(r, "description", "")
+                    print(f"- {title}: {desc}")
+
+            inline_obj.answer = types.MethodType(_print_answer, inline_obj)
+            asyncio.run(inline_query(update_obj, None))
+            return True
+
+        msg = getattr(update_obj, "message", None)
+        if msg is not None:
+            async def _print_reply(self, text, **kwargs):
+                print(f"Message erkannt (real handler). Würde antworten: {text}")
+
+            msg.reply_text = types.MethodType(_print_reply, msg)
+            asyncio.run(start(update_obj, None))
+            return True
+
+    except Exception as exc:
+        print(f"Fehler beim Erzeugen/Verarbeiten von telegram.Update: {exc}")
+
+    return False
+
+
+def _process_offline(data: dict) -> None:
+    """Einfache Offline-Simulation, wenn kein Telegram-Paket verfügbar."""
+
     inline = data.get("inline_query")
     if inline is not None:
         query = inline.get("query")
@@ -123,7 +151,11 @@ def process_update_data(data: dict) -> None:
         username = from_user.get("username")
         first_name = from_user.get("first_name") or "Nutzer"
         user_id = from_user.get("id", 0)
-        mention = f"@{username}" if username else f"[{first_name}](tg://user?id={user_id})"
+        mention = (
+            f"@{username}"
+            if username
+            else f"[{first_name}](tg://user?id={user_id})"
+        )
         text = message.get("text") or ""
         print(f"Message erkannt. Text: {text}")
         if text.strip().startswith("/start"):
@@ -170,21 +202,20 @@ if _HAS_TELEGRAM:
         if inline:
             await inline.answer(results)
 
-
     async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Start-Handler: erwähnt den Benutzer sicher (Markdown)."""
 
         user = update.effective_user
         mention = get_mention_text(user) if user else "Nutzer"
         if getattr(update, "message", None):
-            await update.message.reply_text(f"Hallo {mention}, willkommen beim Bot!", parse_mode="Markdown")
-
+            await update.message.reply_text(f"Hallo {mention}!", parse_mode="Markdown")
 
     def run_bot(token: Optional[str]) -> None:
         """Startet den Beispiel-Bot, wenn ein Token vorhanden ist."""
 
         if not token:
-            print("Kein Bot-Token angegeben. Setze TELEGRAM_TOKEN oder übergebe --token.")
+            print("Kein Bot-Token angegeben.")
+            print("Setze TELEGRAM_TOKEN oder übergebe --token.")
             return
 
         app = ApplicationBuilder().token(token).build()
@@ -196,9 +227,26 @@ if _HAS_TELEGRAM:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--run-bot", action="store_true", help="Start the example Telegram bot")
-    parser.add_argument("--process-update", type=str, default=None, help="Path to JSON file containing a serialized Telegram Update to process locally")
-    parser.add_argument("--token", type=str, default=None, help="Bot token (overrides TELEGRAM_TOKEN env var)")
+    parser.add_argument(
+        "--run-bot",
+        action="store_true",
+        help="Start the example Telegram bot",
+    )
+    parser.add_argument(
+        "--process-update",
+        type=str,
+        default=None,
+        help=(
+            "Path to JSON file containing a serialized Telegram Update to "
+            "process locally"
+        ),
+    )
+    parser.add_argument(
+        "--token",
+        type=str,
+        default=None,
+        help="Bot token (overrides TELEGRAM_TOKEN env var)",
+    )
     args = parser.parse_args()
 
     if args.process_update:
@@ -234,7 +282,13 @@ if __name__ == "__main__":
                 username = from_user.get("username")
                 first_name = from_user.get("first_name") or "Nutzer"
                 user_id = from_user.get("id", 0)
-                mention = f"@{username}" if username else f"[{first_name}](tg://user?id={user_id})"
+                if username:
+                    mention = f"@{username}"
+                else:
+                    mention = (
+                        f"[{first_name}]"
+                        f"(tg://user?id={user_id})"
+                    )
                 text = message.get("text") or ""
                 print(f"Message erkannt. Text: {text}")
                 if text.strip().startswith("/start"):
@@ -249,7 +303,10 @@ if __name__ == "__main__":
     if args.run_bot:
         token = args.token or os.environ.get("TELEGRAM_TOKEN")
         if not _HAS_TELEGRAM:
-            print("Das Paket 'python-telegram-bot' ist nicht installiert. Installiere es mit: pip install python-telegram-bot")
+            print(
+                "Das Paket 'python-telegram-bot' ist nicht installiert. "
+                "Installiere es mit: pip install python-telegram-bot"
+            )
         else:
             run_bot(token)
     else:
