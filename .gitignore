@@ -10,3 +10,5 @@ run*.zip
 .vscode/
 *.pyc
 __pycache__/
+# Temporary branch protection JSON files
+protection_*.json
