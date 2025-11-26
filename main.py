@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-"""
-Main Python script - Beispiel für ein Python-Projekt
+"""Main Python script - Beispiel für ein Python-Projekt
 
 Dieses Script hat zwei Funktionen:
 - Standard-`main()` zeigt die lokale Python-Version an.
-- Optionales Beispiel: ein sicherer Telegram Inline-Query / Start-Handler
-  (nur aktiv, wenn `python-telegram-bot` installiert ist und Sie
-  `--run-bot` beim Start übergeben).
+- Optionales Beispiel: sicherer Telegram Inline-Query-/Start-Handler —
+    nur aktiv, wenn das Paket ``python-telegram-bot`` installiert ist und
+    beim Start die Option ``--run-bot`` übergeben wird.
 """
 from __future__ import annotations
 
@@ -77,7 +76,7 @@ def process_update_data(data: dict) -> None:
     """Verarbeitet eine bereits geladene JSON-Update-Struktur.
 
     Diese Funktion ist importierbar und testbar. Sie versucht, wenn
-    `python-telegram-bot` installiert ist, echte `telegram.Update`-Objekte
+    ``python-telegram-bot`` installiert ist, echte ``telegram.Update``-Objekte
     zu bauen und die asynchronen Handler aufzurufen; andernfalls führt sie
     die einfache Offline-Simulation aus.
     """
@@ -305,7 +304,7 @@ if __name__ == "__main__":
         if not _HAS_TELEGRAM:
             print(
                 "Das Paket 'python-telegram-bot' ist nicht installiert. "
-                "Installiere es mit: pip install python-telegram-bot"
+                "Installiere es mit: `pip install python-telegram-bot`"
             )
         else:
             run_bot(token)
