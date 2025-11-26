@@ -2,16 +2,40 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, 'ci/**' ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.12
+      - name: Install dev dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements-dev.txt ]; then python -m pip install -r requirements-dev.txt; fi
+      - name: Run mypy (type checks)
+        run: |
+          python -m pip install --quiet mypy || true
+          python -m mypy .
+
   test:
     runs-on: ubuntu-latest
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     strategy:
+      fail-fast: false
       matrix:
-        python-version: [ '3.11', '3.12', '3.14' ]
+        python-version: [ '3.11', '3.12', '3.13' ]
 
     steps:
       - uses: actions/checkout@v4
@@ -20,6 +44,15 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: Show environment (debug)
+        run: |
+          echo "Runner: $RUNNER_OS"
+          echo "Matrix Python: ${{ matrix.python-version }}"
+          python --version || true
+          python -m pip --version || true
+          uname -a || true
+          lsb_release -a 2>/dev/null || true
 
       - name: Cache pip
         uses: actions/cache@v4
@@ -33,7 +66,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements-dev.txt ]; then python -m pip install -r requirements-dev.txt; fi
-
       - name: Run tests (with coverage)
         run: |
           python -m pip install --quiet coverage || true
@@ -42,7 +74,7 @@ jobs:
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report
+          name: coverage-report-${{ matrix.python-version }}
           path: coverage.xml
       - name: Run flake8 (style checks)
         run: |
@@ -50,17 +82,14 @@ jobs:
           python -m pip install --quiet flake8 || true
           python -m flake8 --exclude=.venv .
 
-      - name: Run mypy (type checks)
-        run: |
-          python -m pip install --quiet mypy || true
-          python -m mypy .
+      # mypy/type-checks are run in the separate `typecheck` job to reduce matrix flakiness
       - name: Run pip-audit (dependency security scan)
         run: |
           python -m pip install --quiet pip-audit || true
           python -m pip_audit
       - name: Upload coverage to Codecov
-        if: ${{ secrets.CODECOV_TOKEN != '' }}
+        if: ${{ env.CODECOV_TOKEN != '' }}
         uses: codecov/codecov-action@v4
         with:
           files: coverage.xml
-          token: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ env.CODECOV_TOKEN }}
