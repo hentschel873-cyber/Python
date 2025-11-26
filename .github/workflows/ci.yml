@@ -8,11 +8,32 @@ on:
   workflow_dispatch:
 
 jobs:
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.12
+      - name: Install dev dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements-dev.txt ]; then python -m pip install -r requirements-dev.txt; fi
+      - name: Run mypy (type checks)
+        run: |
+          python -m pip install --quiet mypy || true
+          python -m mypy .
+
   test:
     runs-on: ubuntu-latest
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     strategy:
+      fail-fast: false
       matrix:
         python-version: [ '3.11', '3.12', '3.13' ]
 
@@ -61,10 +82,7 @@ jobs:
           python -m pip install --quiet flake8 || true
           python -m flake8 --exclude=.venv .
 
-      - name: Run mypy (type checks)
-        run: |
-          python -m pip install --quiet mypy || true
-          python -m mypy .
+      # mypy/type-checks are run in the separate `typecheck` job to reduce matrix flakiness
       - name: Run pip-audit (dependency security scan)
         run: |
           python -m pip install --quiet pip-audit || true
