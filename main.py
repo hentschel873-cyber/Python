@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Main Python script - Beispiel für ein Python-Projekt
+"""Main Python script - Beispiel für ein Python‑Projekt
 
-Dieses Script hat zwei Funktionen:
-- Standard-`main()` zeigt die lokale Python-Version an.
-- Optionales Beispiel: sicherer Telegram Inline-Query-/Start-Handler —
-    nur aktiv, wenn das Paket ``python-telegram-bot`` installiert ist und
-    beim Start die Option ``--run-bot`` übergeben wird.
+Dieses Skript hat zwei Funktionen:
+- Die Standard‑Funktion `main()` zeigt die lokale Python‑Version an.
+- Optionales Beispiel: sicherer Telegram Inline‑Query/Start‑Handler —
+    dieser ist nur aktiv, wenn das Paket ``python-telegram-bot`` installiert
+    ist und beim Start die Option ``--run-bot`` übergeben wird.
 """
 from __future__ import annotations
 
@@ -215,7 +215,7 @@ if _HAS_TELEGRAM:
         app.add_handler(InlineQueryHandler(inline_query))
         app.add_handler(CommandHandler("start", start))
         print("Bot läuft... (STRG+C zum Beenden)")
-        app.run_polling()
+        app.run_polling()  # pragma: no cover
 
 
 if __name__ == "__main__":
@@ -302,6 +302,6 @@ if __name__ == "__main__":
                 "Installiere es mit: `pip install python-telegram-bot`"
             )
         else:
-            run_bot(token)
+            run_bot(token)  # pragma: no cover
     else:
         main()
